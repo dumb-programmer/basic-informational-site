@@ -39,6 +39,10 @@ const server = http.createServer((req, res) => {
             res.end(data);
         }, () => handleError(res));
     }
+    else if (route.endsWith(".css")) {
+        res.writeHead(200, { "Content-Type": "text/css" });
+        sendFile(`./static/${route}`, (data) => res.end(data), () => handleError(res));
+    }
     else {
         res.writeHead(404, { "Content-Type": "text/html" });
         sendFile("./static/404.html", (data) => {
