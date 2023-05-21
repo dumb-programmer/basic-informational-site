@@ -1,8 +1,9 @@
-const http = require("http");
+const express = require("express");
 const fs = require("fs");
 
+const app = express();
+
 const PORT = 8080;
-const HOST = "localhost";
 
 const sendFile = (filename, onSuccess, onError) => {
     fs.readFile(filename, { encoding: "utf8" }, (err, data) => {
@@ -15,40 +16,24 @@ const sendFile = (filename, onSuccess, onError) => {
 };
 
 const handleError = (res) => {
-    res.writeHead(500, { "Content-Type": "text/html" });
-    res.end("Something went wrong");
+    res.status(500).send("Something went wrong");
 };
 
-const server = http.createServer((req, res) => {
-    const route = req.url;
-    if (route === "/") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        sendFile("./static/index.html", (data) => {
-            res.end(data);
-        }, () => handleError(res));
-    }
-    else if (route === "/about") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        sendFile("./static/about.html", (data) => {
-            res.end(data);
-        }, () => handleError(res));
-    }
-    else if (route === "/contact-me") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        sendFile("./static/contact-me.html", (data) => {
-            res.end(data);
-        }, () => handleError(res));
-    }
-    else if (route.endsWith(".css")) {
-        res.writeHead(200, { "Content-Type": "text/css" });
-        sendFile(`./static/${route}`, (data) => res.end(data), () => handleError(res));
-    }
-    else {
-        res.writeHead(404, { "Content-Type": "text/html" });
-        sendFile("./static/404.html", (data) => {
-            res.end(data);
-        }, () => handleError(res));
-    }
+app.use(express.static("static/css"));
+
+app.get("/", (req, res) => {
+    sendFile("./static/html/index.html", (data) => res.send(data), () => handleError(res))
 });
 
-server.listen(PORT, HOST, () => console.log(`Server listening on port : ${PORT}`))
+app.get("/about", (req, res) => {
+    sendFile("./static/html/about.html", (data) => res.send(data), () => handleError(res))
+});
+app.get("/contact-me", (req, res) => {
+    sendFile("./static/html/contact-me.html", (data) => res.send(data), () => handleError(res))
+});
+
+app.use((req, res) => {
+    sendFile("./static/html/404.html", (data) => res.status(404).send(data), () => handleError(res))
+});
+
+app.listen(PORT, () => console.log(`Server listening on port : ${PORT}`))
